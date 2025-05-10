@@ -12,7 +12,7 @@ def __main__():
     screen = Screen()
     clock = pygame.time.Clock()
     circle = Circle(start_angle=0, end_angle=300)
-    ball1 = Ball(color=settings.RED, vx=1, vy=2, y_offset=0)
+    ball1 = Ball(color=settings.RED, vx=1, vy=2, y_offset=000)
     ball2 = Ball(color=settings.WHITE, vx=3, vy=1)
 
     while 1:

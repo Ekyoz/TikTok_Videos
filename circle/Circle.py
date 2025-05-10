@@ -26,34 +26,63 @@ class Circle:
         dy = ball.y - self.y
         dist = math.hypot(dx, dy)
 
-        # Collision extérieure : balle à l'extérieur du cercle
-        if dist - ball.radius <= self.radius:
-            # Normale pointant vers l'intérieur du cercle
-            nx = dx / dist
-            ny = dy / dist
-        # Collision intérieure : balle à l'intérieur du cercle
-        if dist + ball.radius <= self.radius:
-            # Normale pointant vers l'extérieur du cercle
-            nx = dx / dist
-            ny = dy / dist
-        else:
-            # Si la balle est exactement à la frontière (cas rare mais possible)
+        # Si la balle est exactement au centre (éviter division par zéro)
+        if dist == 0:
             return
 
-        # Produit scalaire pour projeter la vitesse sur la normale
-        dot = ball.vx * nx + ball.vy * ny
+        # Calcul de l'angle de la balle par rapport au centre
+        angle_to_ball = math.atan2(dy, dx) % (2 * math.pi)
 
-        # Réflexion : inverse la vitesse suivant la direction normale
-        ball.vx -= 2 * dot * nx
-        ball.vy -= 2 * dot * ny
+        # Vérifie si la balle est dans la portion d'arc
+        start = self.start_angle % (2 * math.pi)
+        end = self.end_angle % (2 * math.pi)
 
-        # Appliquer rebond (en fonction de la direction)
-        ball.vx *= self.bounce
-        ball.vy *= self.bounce
+        in_arc = False
+        if start < end:
+            in_arc = start <= angle_to_ball <= end
+        else:
+            in_arc = angle_to_ball >= start or angle_to_ball <= end
 
-        # Repositionner légèrement la balle pour éviter qu'elle reste coincée
-        overlap = (dist + ball.radius) - self.radius if dist + ball.radius <= self.radius else (dist - ball.radius) - self.radius
-        ball.x -= nx * overlap
-        ball.y -= ny * overlap
+        if not in_arc:
+            return  # pas dans la zone de collision active
+
+        # Calcul de la distance à la surface du cercle
+        penetration = self.radius - dist
+
+        # Collision extérieure
+        if dist > self.radius - ball.radius and dist < self.radius + ball.radius:
+            nx = dx / dist
+            ny = dy / dist
+
+            # Réflexion
+            dot = ball.vx * nx + ball.vy * ny
+            ball.vx -= 2 * dot * nx
+            ball.vy -= 2 * dot * ny
+
+            # Appliquer rebond
+            ball.vx *= self.bounce
+            ball.vy *= self.bounce
+
+            # Repositionnement correct
+            ball.x += nx * (ball.radius - penetration)
+            ball.y += ny * (ball.radius - penetration)
+
+        # Collision intérieure
+        elif dist < self.radius - ball.radius:
+            nx = -dx / dist
+            ny = -dy / dist
+
+            # Réflexion
+            dot = ball.vx * nx + ball.vy * ny
+            ball.vx -= 2 * dot * nx
+            ball.vy -= 2 * dot * ny
+
+            ball.vx *= self.bounce
+            ball.vy *= self.bounce
+
+            # Repositionnement vers l'intérieur
+            ball.x += nx * (ball.radius + penetration)
+            ball.y += ny * (ball.radius + penetration)
+
 
 
