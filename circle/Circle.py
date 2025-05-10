@@ -25,34 +25,28 @@ class Circle:
         dx = ball.x - self.x
         dy = ball.y - self.y
         dist = math.hypot(dx, dy)
+        nx = ny = 0
 
-        # Determine if the ball is inside or outside the circle
-        if dist < self.radius - ball.radius:
-            # Ball is inside the circle
+        # Collision intérieure : balle à l'intérieur du cercle
+        if dist + ball.radius >= self.radius:
+            # Normale pointant vers l'extérieur du cercle
             nx = -dx / dist
             ny = -dy / dist
-            overlap = (self.radius - ball.radius) - dist
-        elif dist > self.radius + ball.radius:
-            # Ball is outside the circle
-            nx = dx / dist
-            ny = dy / dist
-            overlap = dist - (self.radius + ball.radius)
-        else:
-            # Ball is exactly on the boundary; no collision response needed
-            return
 
-        # Reflect the velocity along the normal
+        # Produit scalaire pour projeter la vitesse sur la normale
         dot = ball.vx * nx + ball.vy * ny
+
+        # Réflexion : inverse la vitesse suivant la direction normale
         ball.vx -= 2 * dot * nx
         ball.vy -= 2 * dot * ny
 
-        # Apply bounce factor
+        # Appliquer rebond (en fonction de la direction)
         ball.vx *= self.bounce
         ball.vy *= self.bounce
 
-        # Reposition ball to avoid sticking
-        ball.x += nx * overlap
-        ball.y += ny * overlap
-
+        # Repositionner légèrement la balle pour éviter qu'elle reste coincée
+        overlap = (dist + ball.radius) - self.radius if dist + ball.radius <= self.radius else (dist - ball.radius) - self.radius
+        ball.x -= nx * overlap
+        ball.y -= ny * overlap
 
 
